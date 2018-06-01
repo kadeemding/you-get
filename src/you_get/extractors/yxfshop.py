@@ -52,18 +52,6 @@ def yxfshop_download_by_url(url, output_dir='.', merge=True, info_only=False, **
         fo.writelines(info)
         fo.close()
 
-        products = []
-        if os.path.exists("products.txt"):
-            fo = open("products.txt", "r")
-            products = fo.readlines()
-            fo.close()
-
-        products.append(url);
-        products = reduce(lambda x, y: x if y in x else x + [y], products, [])
-        fo = open("products.txt", "w")
-        fo.writelines(products)
-        fo.close()
-
 
 def yxfshop_download_playlist_by_url(url, output_dir='.', merge=True, info_only=False, **kwargs):
     products = []
@@ -82,8 +70,11 @@ def yxfshop_download_playlist_by_url(url, output_dir='.', merge=True, info_only=
         for item in items_list:
             item_str = etree.tostring(item, encoding='unicode')
             href = re.search(r'href="(.+?)"', item_str).group(1)
-            img_src = re.search(r'src="(.+?)"', item_str)
-            if img_src == 'http://www.yxfshop.com/images/default/default_thumbnail_pic.gif':
+            img_src = re.search(r'src="(.+?)"', item_str).group(1)
+            alt = re.search(r'alt="(.+?)"', item_str).group(1)
+            if '勿拍' in alt:
+                continue
+            if 'default_thumbnail_pic' in img_src:
                 continue
             if len(list(filter(lambda x: x == href, products))) > 0:
                 continue
