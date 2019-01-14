@@ -130,6 +130,7 @@ SITES = {
     'zhibo'            : 'zhibo',
     '365yg'            : 'toutiao',
     'yxfshop'          : 'yxfshop',
+    'zhihu'            : 'zhihu',
 }
 
 dry_run = False
