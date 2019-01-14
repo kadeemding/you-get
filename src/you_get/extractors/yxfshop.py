@@ -56,13 +56,13 @@ def yxfshop_download_by_url(url, output_dir='.', merge=True, info_only=False, **
         for i, main_pic in enumerate(main_pics):
             mime, ext, size = url_info(main_pic)
             if product_info['thumbnailImage'] == '':
-                product_info['thumbnailImage'] = 'img/%s/main_%04d.%s' % (product, i, ext)
-            product_info['images'].append('img/%s/main_%04d.%s' % (product, i, ext))
-            download_urls([main_pic], 'main_%04d' % i, ext, size, product_dir, merge=merge)
+                product_info['thumbnailImage'] = 'img/%s/%s_main_%04d.%s' % (product, product, i, ext)
+            product_info['images'].append('img/%s/%s_main_%04d.%s' % (product, product, i, ext))
+            download_urls([main_pic], '%s_main_%04d' % (product, i), ext, size, product_dir, merge=merge)
         for i, desc_pic in enumerate(desc_pics):
             mime, ext, size = url_info(desc_pic)
-            product_info['images'].append('img/%s/desc_%04d.%s' % (product, i, ext))
-            download_urls([desc_pic], 'desc_%04d' % i, ext, size, product_dir, merge=merge)
+            product_info['images'].append('img/%s/%s_desc_%04d.%s' % (product, product, i, ext))
+            download_urls([desc_pic], '%s_desc_%04d' % (product, i), ext, size, product_dir, merge=merge)
         rows = doc.xpath('//div[@id="goods_products_list_buy"]//thead/tr')
         info = [url, title]
         for row in rows:
