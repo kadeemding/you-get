@@ -5,6 +5,10 @@ __all__ = ['yxfshop_download_by_url', 'yxfshop_download_playlist_by_url']
 from ..common import *
 from lxml import etree
 from functools import reduce
+import datetime
+import pytz
+import json
+import codecs
 
 
 def yxfshop_download_by_url(url, output_dir='.', merge=True, info_only=False, **kwargs):
@@ -17,6 +21,29 @@ def yxfshop_download_by_url(url, output_dir='.', merge=True, info_only=False, **
     print('Title  :     ', title)
     print('Product:     ', product)
 
+    utc_tz = pytz.timezone('UTC')
+    product_info = {
+        'title': title,
+        'date': datetime.datetime.now(tz=utc_tz).isoformat(),
+        'tags': [],
+        'categories': [],
+        'images': [],
+        'thumbnailImage': '',
+        'actualPrice': '',
+        'comparePrice': '',
+        'inStock': True,
+        'options': {
+            'Color': [],
+            'Size': []
+        },
+        'variants': [{
+            'optionCombination': [],
+            'comparePrice': '',
+            'actualPrice': '',
+            'inStock': True
+        }]
+    }
+
     main_pics = re.findall(r'c_src="(.+?)"', html)
     doc = etree.HTML(html)
     desc_imgs = doc.xpath('//div[@id="goods-intro"]//img')
@@ -28,10 +55,14 @@ def yxfshop_download_by_url(url, output_dir='.', merge=True, info_only=False, **
     if not info_only:
         for i, main_pic in enumerate(main_pics):
             mime, ext, size = url_info(main_pic)
-            download_urls([main_pic], '主图%04d' % i, ext, size, product_dir, merge=merge)
+            if product_info['thumbnailImage'] == '':
+                product_info['thumbnailImage'] = 'img/%s/main_%04d.%s' % (product, i, ext)
+            product_info['images'].append('img/%s/main_%04d.%s' % (product, i, ext))
+            download_urls([main_pic], 'main_%04d' % i, ext, size, product_dir, merge=merge)
         for i, desc_pic in enumerate(desc_pics):
             mime, ext, size = url_info(desc_pic)
-            download_urls([desc_pic], '描述图%04d' % i, ext, size, product_dir, merge=merge)
+            product_info['images'].append('img/%s/desc_%04d.%s' % (product, i, ext))
+            download_urls([desc_pic], 'desc_%04d' % i, ext, size, product_dir, merge=merge)
         rows = doc.xpath('//div[@id="goods_products_list_buy"]//thead/tr')
         info = [url, title]
         for row in rows:
@@ -48,7 +79,10 @@ def yxfshop_download_by_url(url, output_dir='.', merge=True, info_only=False, **
             f4 = row.xpath('./td[6]/text()')
             info.append('%s, %s, %s, %s' % (f1, f2, f3, f4))
         info = map(lambda x: x + '\n', info)
-        fo = open(os.path.join(product_dir, 'info.txt'), "w")
+        product_info_str = json.dumps(product_info, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ': '))
+        fo = codecs.open(os.path.join(product_dir, '%s.md' % product), "w", 'utf-8')
+        fo.write(product_info_str)
+        fo.write('\n\n')
         fo.writelines(info)
         fo.close()
 
